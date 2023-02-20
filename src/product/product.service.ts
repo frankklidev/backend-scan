@@ -21,8 +21,8 @@ export class ProductService {
       await this.productRepository.save(product);
       return product;
     } catch (error) {
-       this.handleDBExecptions(error);
-      
+      this.handleDBExecptions(error);
+
     }
   }
 
@@ -40,6 +40,7 @@ export class ProductService {
         code_product: term
       }
     });
+    console.log(product)
     if (!product)
       throw new NotFoundException(`Product with code ${term} not found`);
     return product;
@@ -50,7 +51,8 @@ export class ProductService {
     const product = await this.productRepository.findOne({
       where: { code_product: term }
     });
-    if (!product) throw new NotFoundException(`Sale with id ${term} not exist`)
+    console.log(product)
+    if (!product) throw new NotFoundException(`Product with id ${term} not exist`)
     return this.productRepository.save({
       ...product, // existing fields
       ...updateProductDto // updated fields
@@ -62,13 +64,15 @@ export class ProductService {
     return await this.productRepository.delete(product)
   }
 
-  private handleDBExecptions(error: any) {
+  handleDBExecptions(error: any) {
     if (error.code === '23505') {
       throw new BadRequestException(error.detail)
     }
     this.loguer.error(error)
     throw new InternalServerErrorException('Unexpected error check Logs')
   }
+
+
 }
 
 

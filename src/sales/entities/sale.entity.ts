@@ -1,4 +1,6 @@
-import {Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { ProductService } from '../../product/product.service';
+
 
 @Entity()
 export class Sale {
@@ -17,6 +19,5 @@ export class Sale {
 
     @Column('text')
     type_of_sale: string;
-
 
 }

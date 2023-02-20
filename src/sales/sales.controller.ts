@@ -16,7 +16,6 @@ export class SalesController {
   }
 
   @Get() 
-  @Auth(ValidRoles.admin)
   findAll(@Query() paginationDto: PaginationDto) {
     console.log(paginationDto);
     return this.salesService.findAll(paginationDto);
@@ -31,6 +30,7 @@ export class SalesController {
   update(@Param('id') term: string, @Body() updateSaleDto: UpdateSaleDto) {
     return this.salesService.update(term, updateSaleDto);
   }
+
 
   @Delete(':id')
   remove(@Param('id') term: string) {

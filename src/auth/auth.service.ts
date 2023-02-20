@@ -28,9 +28,11 @@ export class AuthService {
   async create(createUserDto: CreateUserDto) {
     try {
       const { password, ...userData } = createUserDto
+      const saltRounds = 10;
+      const hash = bcrypt.hashSync(password, saltRounds);
       const user = this.userRepository.create({
         ...userData,
-        password: bcrypt.hashSync(password, 10)
+        password: hash
       })
       await this.userRepository.save(user);
       delete user.password;
@@ -46,17 +48,20 @@ export class AuthService {
   async login(loginUserDto: LoginUserDto) {
 
     const { password, user_name } = loginUserDto
-
     const user = await this.userRepository.findOne({
       where: { user_name },
       select: { user_name: true, password: true, id: true }
     })
 
+
+
     if (!user)
       throw new UnauthorizedException('Credentials not Valid (username )')
 
+
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Credentials not Valid (password )')
+
     return {
       ...user,
       token: this.getJwtToken({ id: user.id })

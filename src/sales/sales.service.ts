@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 import { Sale } from './entities/sale.entity';
+import { ProductService } from '../product/product.service';
 
 @Injectable()
 export class SalesService {
@@ -13,17 +14,23 @@ export class SalesService {
 
   constructor(
     @InjectRepository(Sale)
-    private readonly saleRepository: Repository<Sale>
+    private readonly saleRepository: Repository<Sale>,
+    private productService: ProductService
   ) { }
 
   async create(createSaleDto: CreateSaleDto) {
     try {
+      const findedProduct = await this.productService.findOne(createSaleDto.code_product);
+      if(findedProduct && findedProduct.stock_product >= createSaleDto.count_product){
+        findedProduct.stock_product - createSaleDto.count_product
+        await this.productService.update(findedProduct.code_product, findedProduct);
+      }
       const sale = this.saleRepository.create(createSaleDto);
       await this.saleRepository.save(sale);
       return sale;
     } catch (error) {
-       this.handleDBExecptions(error);
-      
+      this.handleDBExecptions(error);
+
     }
   }
 
@@ -38,7 +45,7 @@ export class SalesService {
   async findOne(term: string) {
     const sale = await this.saleRepository.findOne({
       where: {
-        code_product: term
+        id: term
       }
     });
     if (!sale)
@@ -49,7 +56,7 @@ export class SalesService {
   async update(term: string, updateSaleDto: UpdateSaleDto) {
 
     const sale = await this.saleRepository.findOne({
-      where: { code_product: term }
+      where: { id: term }
     });
     if (!sale) throw new NotFoundException(`Sale with id ${term} not exist`)
     return this.saleRepository.save({
