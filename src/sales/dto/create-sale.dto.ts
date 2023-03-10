@@ -1,4 +1,5 @@
-import { IsNumber, IsPositive, IsString, MinLength } from "class-validator";
+import { IsArray, IsEnum, IsNumber, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
+import { SaleType } from "../entities/sale.entity";
 
 
 export class CreateSaleDto {
@@ -8,6 +9,10 @@ export class CreateSaleDto {
     @IsNumber()
     @IsPositive()
     count_product: number;
+    @IsEnum(SaleType)
     @IsString()
-    type_of_sale: string;
+    type_of_sale: SaleType
+    @IsOptional()
+    @IsString()
+    created_at: string;
 }

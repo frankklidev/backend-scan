@@ -50,18 +50,17 @@ export class AuthService {
     const { password, user_name } = loginUserDto
     const user = await this.userRepository.findOne({
       where: { user_name },
-      select: { user_name: true, password: true, id: true }
+      select: { user_name: true, password: true, id: true,roles:true }
     })
-
 
 
     if (!user)
       throw new UnauthorizedException('Credentials not Valid (username )')
 
-
-    if (!bcrypt.compareSync(password, user.password))
+    if (!bcrypt.compareSync(password, user.password)) 
       throw new UnauthorizedException('Credentials not Valid (password )')
-
+      console.log("Entro al bcript")
+    
     return {
       ...user,
       token: this.getJwtToken({ id: user.id })
@@ -101,11 +100,22 @@ export class AuthService {
   }
 
   async update(term: string, updateUserDto: UpdateUserDto) {
-
-    const user = await this.userRepository.findOne({
+    
+    let user = await this.userRepository.findOne({
       where: { user_name: term }
     });
     if (!user) throw new NotFoundException(`User with id ${term} not exist`)
+    if(updateUserDto.password){
+      const saltRounds = 10;
+      const hash = bcrypt.hashSync(updateUserDto.password, saltRounds);
+       user = this.userRepository.create({
+        ...user,
+        password: hash
+      })
+      return this.userRepository.save(
+        user // existing fields
+      );
+    }
     return this.userRepository.save({
       ...user, // existing fields
       ...updateUserDto // updated fields
@@ -117,7 +127,7 @@ export class AuthService {
     return await this.userRepository.delete({ user_name: user.user_name })
   }
 
-  private handleDBExecptions(error: any) {
+    handleDBExecptions(error: any) {
     if (error.code === '23505') {
       throw new BadRequestException(error.detail)
     }

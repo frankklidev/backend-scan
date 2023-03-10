@@ -19,19 +19,29 @@ export class SalesService {
   ) { }
 
   async create(createSaleDto: CreateSaleDto) {
-    try {
-      const findedProduct = await this.productService.findOne(createSaleDto.code_product);
-      if(findedProduct && findedProduct.stock_product >= createSaleDto.count_product){
-        findedProduct.stock_product - createSaleDto.count_product
-        await this.productService.update(findedProduct.code_product, findedProduct);
-      }
-      const sale = this.saleRepository.create(createSaleDto);
-      await this.saleRepository.save(sale);
-      return sale;
-    } catch (error) {
-      this.handleDBExecptions(error);
+    const saleExists = await this.saleRepository.findOne({ where: { code_product: createSaleDto.code_product } });
 
+    if (saleExists) {
+      const updatedSale = await this.saleRepository.save({
+        ...saleExists,
+        count_product: Number(saleExists.count_product) + Number(createSaleDto.count_product)
+      });
+  
+      return updatedSale;
     }
+
+    const findedProduct = await this.productService.findOneByProductCode(createSaleDto.code_product);
+    if (findedProduct && findedProduct.stock_product >= createSaleDto.count_product) {
+      const leftProduct = findedProduct.stock_product - createSaleDto.count_product
+      await this.productService.update(findedProduct.code_product, { ...findedProduct, stock_product: leftProduct });
+    }
+    if (findedProduct && findedProduct.stock_product < createSaleDto.count_product){
+      throw new BadRequestException(`El producto no cuenta con el stock suficiente`)
+    }
+    const sale = this.saleRepository.create({ ...createSaleDto });
+    await this.saleRepository.save(sale);
+    return sale;
+
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -45,7 +55,7 @@ export class SalesService {
   async findOne(term: string) {
     const sale = await this.saleRepository.findOne({
       where: {
-        id: term
+        code_product: term
       }
     });
     if (!sale)
@@ -56,7 +66,7 @@ export class SalesService {
   async update(term: string, updateSaleDto: UpdateSaleDto) {
 
     const sale = await this.saleRepository.findOne({
-      where: { id: term }
+      where: { code_product: term }
     });
     if (!sale) throw new NotFoundException(`Sale with id ${term} not exist`)
     return this.saleRepository.save({
@@ -67,7 +77,8 @@ export class SalesService {
 
   async remove(term: string) {
     const sale = await this.findOne(term);
-    return await this.saleRepository.delete(sale)
+  console.log(sale)
+    // return await this.saleRepository.delete(sale)
   }
 
   private handleDBExecptions(error: any) {

@@ -1,4 +1,4 @@
-import { IsString, MaxLength, MinLength } from "class-validator";
+import { IsArray, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateUserDto{
 
@@ -14,4 +14,7 @@ export class CreateUserDto{
     @IsString()
     @MinLength(4)
     fullName:string;
+    
+    @IsArray()
+    roles: string[]
 }

@@ -46,6 +46,14 @@ export class ProductService {
     return product;
   }
 
+  async findOneByProductCode(term: string) {
+    return await this.productRepository.findOne({
+      where: {
+        code_product: term
+      }
+    });
+  }
+
   async update(term: string, updateProductDto: UpdateProductDto) {
 
     const product = await this.productRepository.findOne({

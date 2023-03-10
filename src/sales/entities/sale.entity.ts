@@ -1,6 +1,11 @@
-import {BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { ProductService } from '../../product/product.service';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+const moment = require('moment');
 
+export enum SaleType {
+    TRANSFERENCIA = 'TRANSFERENCIA',
+    EFECTIVO = 'EFECTIVO',
+    RUNNING = 'RUNNING'
+  }
 
 @Entity()
 export class Sale {
@@ -9,7 +14,7 @@ export class Sale {
     id: string;
 
     @Column('text', {
-        unique: true,
+        unique: false,
         nullable: false
     })
     code_product: string;
@@ -17,7 +22,22 @@ export class Sale {
     @Column('numeric', { nullable: false, default: 1 })
     count_product: number;
 
-    @Column('text')
-    type_of_sale: string;
+    @Column({
+        type: "enum",
+        enum: ["TRANSFERENCIA", "EFECTIVO"],
+        nullable:true
+    })
+    type_of_sale: SaleType
+
+    @Column('date',
+    {nullable:false,
+    default: moment().toDate()})
+    created_at: string;
 
 }
+
+
+
+   
+
+
